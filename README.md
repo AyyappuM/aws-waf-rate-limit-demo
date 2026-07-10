@@ -33,9 +33,9 @@ app/                  Flask app + Dockerfile
 01-network/            Phase 1: VPC, subnets, security groups
 02-ecs/                 Phase 2: ECR, ECS cluster/service, ALB
 03-waf/                 Phase 3: WAFv2 Web ACL + rate-based rule
+scripts/deploy.sh       Applies phases 1 -> 2 -> 3 in order
+scripts/destroy.sh      Tears down phases 3 -> 2 -> 1 in reverse order
 scripts/load-test.sh    Load generator that makes rate limiting visible
-deploy.sh               Applies phases 1 -> 2 -> 3 in order
-destroy.sh              Tears down phases 3 -> 2 -> 1 in reverse order
 ```
 
 Each phase is an independent Terraform root module with its own local
@@ -75,7 +75,7 @@ region inline if needed: `make deploy AWS_REGION=ap-south-1`.
 
 ```bash
 export AWS_REGION=us-east-1   # optional, defaults to us-east-1
-./deploy.sh
+./scripts/deploy.sh
 ```
 
 This runs, in order:
@@ -90,7 +90,7 @@ This runs, in order:
 3. **`03-waf`** — creates a regional WAFv2 Web ACL with a rate-based rule
    and associates it with the ALB.
 
-At the end, `deploy.sh` prints the ALB's DNS name and a ready-to-run
+At the end, `scripts/deploy.sh` prints the ALB's DNS name and a ready-to-run
 load-test command.
 
 ## Feel the rate limit
@@ -176,7 +176,7 @@ directly), which avoids its ~$0.045/hr cost.
 ## Cleanup
 
 ```bash
-./destroy.sh
+./scripts/destroy.sh
 ```
 
 Tears down phases in reverse (WAF, then ECS/ALB/ECR, then network).

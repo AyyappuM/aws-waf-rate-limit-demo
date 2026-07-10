@@ -45,7 +45,7 @@ validate: ## Validate Terraform syntax in all three phases (no AWS calls)
 	done
 
 deploy: check ## Deploy all phases (network -> ecs -> waf), build+push image
-	./deploy.sh
+	./scripts/deploy.sh
 
 verify: ## Check app/ECS/WAF health after deploy
 	@if [ -z "$(ALB_DNS)" ]; then echo "No ALB DNS found — did you run 'make deploy' first?"; exit 1; fi
@@ -79,7 +79,7 @@ metrics: ## Show WAF blocked-request count from CloudWatch for the last 10 minut
 		--period 60 --statistics Sum --output table
 
 destroy: ## Tear down all phases in reverse order
-	./destroy.sh
+	./scripts/destroy.sh
 
 clean: ## Remove local Terraform caches (.terraform dirs) — does NOT touch state or destroy resources
 	find . -name ".terraform" -type d -prune -exec rm -rf {} +
