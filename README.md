@@ -36,6 +36,27 @@ a clear rollout order (network before compute before WAF).
 - Docker with `buildx` (for building the `linux/amd64` image pushed to ECR)
 - `bash`, `curl`, `xargs` (all standard on Linux/macOS)
 
+## Quick start (Makefile)
+
+The `Makefile` wraps the whole workflow below into one command per step —
+run these in order:
+
+```bash
+cd /home/user/Git/AyyappuM/aws-rate-limiting-poc
+
+make check          # 1. confirm terraform/aws/docker/buildx + AWS credentials are all working
+make validate        # 2. sanity-check the Terraform syntax (no AWS calls)
+make deploy           # 3. deploy all 3 phases: network -> ECS/ALB/ECR -> WAF (builds+pushes Docker image)
+make verify            # 4. confirm the app, ECS service, and WAF association are healthy
+make load-test           # 5. hammer the endpoint and watch 200s turn into 403s
+make metrics               # 6. (optional) cross-check WAF's blocked-request count in CloudWatch
+make tune RATE=20 WINDOW=60  # 7. (optional) change the rate limit, then re-run make load-test
+make destroy                  # 8. tear everything down when you're done
+```
+
+Run `make help` at any time to see the full command list. Override the
+region inline if needed: `make deploy AWS_REGION=ap-south-1`.
+
 ## Deploy
 
 ```bash
