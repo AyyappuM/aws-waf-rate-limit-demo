@@ -7,6 +7,20 @@ the app until requests flip from `200` to `403` in real time.
 
 ![A malicious user sending a burst of requests gets blocked with 403 by the WAF web ACL's rate-based rule, while a good user sending normal traffic passes through the ALB to the ECS Fargate Flask app and gets 200 OK](docs/architecture.jpg)
 
+**What's actually happening:** every request — good or bad — hits the same
+public ALB endpoint first, but a WAFv2 Web ACL sits in front of it evaluating
+a rate-based rule that counts requests per source IP over a rolling time
+window. A normal user sending occasional requests never comes close to that
+count, so their traffic is allowed straight through to the ECS Fargate task
+running the Flask app, which returns `200 OK`. The load-test script simulates
+a single IP firing many concurrent requests in a short burst; once that IP's
+count crosses the configured threshold within the window, WAF starts
+returning `403 Forbidden` directly from the edge — the blocked requests never
+reach the ALB target group, the ECS task, or the app code at all. The app
+itself has no rate-limiting logic; the protection is entirely enforced by
+WAF, which is what makes this a realistic demo of the AWS-native mechanism
+rather than an application-level workaround.
+
 Shield Standard is automatically active on the ALB at no extra cost
 (basic L3/L4 DDoS protection). This demo does **not** use Shield Advanced
 (~$3,000/month, 1-year commitment) — it isn't needed to demonstrate
